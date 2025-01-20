@@ -1,0 +1,43 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true,
+    "browser": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "plugin:node/recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "node/no-unsupported-features/es-syntax": ["error", {
+      "ignores": ["modules", "spread", "restSpread"]
+    }],
+    "node/no-missing-import": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "import/no-unresolved": "off",
+    "no-case-declarations": "off"
+  },
+  "overrides": [
+    {
+      "files": ["client/**/*.js"],
+      "env": {
+        "browser": true
+      },
+      "rules": {
+        "node/no-unsupported-features/es-syntax": "off"
+      }
+    },
+    {
+      "files": ["src/lambda/**/*.js"],
+      "rules": {
+        "node/no-unsupported-features/es-syntax": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1947 @@
+{
+  "service": {
+    "service": "obsidian-web-clipper",
+    "serviceObject": {
+      "name": "obsidian-web-clipper"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "architecture": "arm64",
+      "region": "us-east-1",
+      "stage": "dev",
+      "timeout": 30,
+      "memorySize": 2048,
+      "logRetentionInDays": 14,
+      "deploymentBucket": null,
+      "environment": {
+        "SUPABASE_URL": "https://wnfrkuzztkmroyyikcxg.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcmd3eGdsdmN3dWRnenRpdXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzczNDQ3NzYsImV4cCI6MjA1MjkyMDc3Nn0.JkneHZ1KOoXCXf_n4hi-ys0RRr_C6Lie1SU2iV9yifU",
+        "PORT": "3000",
+        "SCRAPER_TIMEOUT": "30000",
+        "SCRAPER_USER_AGENT": "Mozilla/5.0 (compatible; ContentAutomationBot/1.0)",
+        "SCRAPER_MAX_RETRIES": "3",
+        "SCRAPER_SCROLL_TIMEOUT": "3000",
+        "SCRAPER_VIEWPORT_WIDTH": "1920",
+        "SCRAPER_VIEWPORT_HEIGHT": "1080",
+        "MAX_CONTENT_LENGTH": "1000000",
+        "DEFAULT_CONTENT_TYPE": "blog_post",
+        "API_RATE_LIMIT": "100",
+        "API_TIMEOUT": "5000",
+        "API_MAX_BODY_SIZE": "10mb",
+        "ALLOWED_ORIGINS": "http://localhost:3000",
+        "ENABLE_RATE_LIMITING": "true",
+        "MAX_REQUEST_SIZE": "50mb",
+        "MAX_URLS_PER_TREND": "10",
+        "MIN_URL_SCORE": "5.0",
+        "CONTENT_TYPES": "review,comparison,tutorial,guide",
+        "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+      },
+      "apiGateway": {
+        "minimumCompressionSize": 1024,
+        "shouldStartNameWithService": true,
+        "binaryMediaTypes": [
+          "application/octet-stream"
+        ]
+      },
+      "versionFunctions": true,
+      "deploymentBucketObject": {
+        "blockPublicAccess": true,
+        "versioning": true,
+        "serverSideEncryption": "AES256"
+      },
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              },
+              "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": true,
+                "BlockPublicPolicy": true,
+                "IgnorePublicAcls": true,
+                "RestrictPublicBuckets": true
+              },
+              "VersioningConfiguration": {
+                "Status": "Enabled"
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ApiLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/obsidian-web-clipper-dev-api",
+              "RetentionInDays": 14
+            }
+          },
+          "ScraperLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/obsidian-web-clipper-scraper",
+              "RetentionInDays": 14
+            }
+          },
+          "AutomationLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/obsidian-web-clipper-automation",
+              "RetentionInDays": 14
+            }
+          },
+          "TrendsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/obsidian-web-clipper-trends",
+              "RetentionInDays": 14
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "obsidian-web-clipper",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/obsidian-web-clipper-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/obsidian-web-clipper-dev*:*:*"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "obsidian-web-clipper",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z/api.zip"
+              },
+              "Handler": "src/lambda/api-handler.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "obsidian-web-clipper-dev-api",
+              "MemorySize": 2048,
+              "Timeout": 30,
+              "Architectures": [
+                "arm64"
+              ],
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://wnfrkuzztkmroyyikcxg.supabase.co",
+                  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcmd3eGdsdmN3dWRnenRpdXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzczNDQ3NzYsImV4cCI6MjA1MjkyMDc3Nn0.JkneHZ1KOoXCXf_n4hi-ys0RRr_C6Lie1SU2iV9yifU",
+                  "PORT": "3000",
+                  "SCRAPER_TIMEOUT": "30000",
+                  "SCRAPER_USER_AGENT": "Mozilla/5.0 (compatible; ContentAutomationBot/1.0)",
+                  "SCRAPER_MAX_RETRIES": "3",
+                  "SCRAPER_SCROLL_TIMEOUT": "3000",
+                  "SCRAPER_VIEWPORT_WIDTH": "1920",
+                  "SCRAPER_VIEWPORT_HEIGHT": "1080",
+                  "MAX_CONTENT_LENGTH": "1000000",
+                  "DEFAULT_CONTENT_TYPE": "blog_post",
+                  "API_RATE_LIMIT": "100",
+                  "API_TIMEOUT": "5000",
+                  "API_MAX_BODY_SIZE": "10mb",
+                  "ALLOWED_ORIGINS": "http://localhost:3000",
+                  "ENABLE_RATE_LIMITING": "true",
+                  "MAX_REQUEST_SIZE": "50mb",
+                  "MAX_URLS_PER_TREND": "10",
+                  "MIN_URL_SCORE": "5.0",
+                  "CONTENT_TYPES": "review,comparison,tutorial,guide",
+                  "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+                  "NODE_OPTIONS": "--enable-source-maps"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ApiLogGroup"
+            ]
+          },
+          "ScraperLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z/scraper.zip"
+              },
+              "Handler": "src/lambda/scraper-handler.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "obsidian-web-clipper-dev-scraper",
+              "MemorySize": 2048,
+              "Timeout": 30,
+              "Architectures": [
+                "arm64"
+              ],
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://wnfrkuzztkmroyyikcxg.supabase.co",
+                  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcmd3eGdsdmN3dWRnenRpdXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzczNDQ3NzYsImV4cCI6MjA1MjkyMDc3Nn0.JkneHZ1KOoXCXf_n4hi-ys0RRr_C6Lie1SU2iV9yifU",
+                  "PORT": "3000",
+                  "SCRAPER_TIMEOUT": "30000",
+                  "SCRAPER_USER_AGENT": "Mozilla/5.0 (compatible; ContentAutomationBot/1.0)",
+                  "SCRAPER_MAX_RETRIES": "3",
+                  "SCRAPER_SCROLL_TIMEOUT": "3000",
+                  "SCRAPER_VIEWPORT_WIDTH": "1920",
+                  "SCRAPER_VIEWPORT_HEIGHT": "1080",
+                  "MAX_CONTENT_LENGTH": "1000000",
+                  "DEFAULT_CONTENT_TYPE": "blog_post",
+                  "API_RATE_LIMIT": "100",
+                  "API_TIMEOUT": "5000",
+                  "API_MAX_BODY_SIZE": "10mb",
+                  "ALLOWED_ORIGINS": "http://localhost:3000",
+                  "ENABLE_RATE_LIMITING": "true",
+                  "MAX_REQUEST_SIZE": "50mb",
+                  "MAX_URLS_PER_TREND": "10",
+                  "MIN_URL_SCORE": "5.0",
+                  "CONTENT_TYPES": "review,comparison,tutorial,guide",
+                  "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+                  "NODE_OPTIONS": "--enable-source-maps"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ScraperLogGroup"
+            ]
+          },
+          "AutomationLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z/automation.zip"
+              },
+              "Handler": "src/lambda/automation-handler.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "obsidian-web-clipper-dev-automation",
+              "MemorySize": 2048,
+              "Timeout": 30,
+              "Architectures": [
+                "arm64"
+              ],
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://wnfrkuzztkmroyyikcxg.supabase.co",
+                  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcmd3eGdsdmN3dWRnenRpdXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzczNDQ3NzYsImV4cCI6MjA1MjkyMDc3Nn0.JkneHZ1KOoXCXf_n4hi-ys0RRr_C6Lie1SU2iV9yifU",
+                  "PORT": "3000",
+                  "SCRAPER_TIMEOUT": "30000",
+                  "SCRAPER_USER_AGENT": "Mozilla/5.0 (compatible; ContentAutomationBot/1.0)",
+                  "SCRAPER_MAX_RETRIES": "3",
+                  "SCRAPER_SCROLL_TIMEOUT": "3000",
+                  "SCRAPER_VIEWPORT_WIDTH": "1920",
+                  "SCRAPER_VIEWPORT_HEIGHT": "1080",
+                  "MAX_CONTENT_LENGTH": "1000000",
+                  "DEFAULT_CONTENT_TYPE": "blog_post",
+                  "API_RATE_LIMIT": "100",
+                  "API_TIMEOUT": "5000",
+                  "API_MAX_BODY_SIZE": "10mb",
+                  "ALLOWED_ORIGINS": "http://localhost:3000",
+                  "ENABLE_RATE_LIMITING": "true",
+                  "MAX_REQUEST_SIZE": "50mb",
+                  "MAX_URLS_PER_TREND": "10",
+                  "MIN_URL_SCORE": "5.0",
+                  "CONTENT_TYPES": "review,comparison,tutorial,guide",
+                  "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+                  "NODE_OPTIONS": "--enable-source-maps"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AutomationLogGroup"
+            ]
+          },
+          "TrendsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z/trends.zip"
+              },
+              "Handler": "src/lambda/trends-handler.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "obsidian-web-clipper-dev-trends",
+              "MemorySize": 1024,
+              "Timeout": 30,
+              "Architectures": [
+                "arm64"
+              ],
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://wnfrkuzztkmroyyikcxg.supabase.co",
+                  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhcmd3eGdsdmN3dWRnenRpdXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzczNDQ3NzYsImV4cCI6MjA1MjkyMDc3Nn0.JkneHZ1KOoXCXf_n4hi-ys0RRr_C6Lie1SU2iV9yifU",
+                  "PORT": "3000",
+                  "SCRAPER_TIMEOUT": "30000",
+                  "SCRAPER_USER_AGENT": "Mozilla/5.0 (compatible; ContentAutomationBot/1.0)",
+                  "SCRAPER_MAX_RETRIES": "3",
+                  "SCRAPER_SCROLL_TIMEOUT": "3000",
+                  "SCRAPER_VIEWPORT_WIDTH": "1920",
+                  "SCRAPER_VIEWPORT_HEIGHT": "1080",
+                  "MAX_CONTENT_LENGTH": "1000000",
+                  "DEFAULT_CONTENT_TYPE": "blog_post",
+                  "API_RATE_LIMIT": "100",
+                  "API_TIMEOUT": "5000",
+                  "API_MAX_BODY_SIZE": "10mb",
+                  "ALLOWED_ORIGINS": "http://localhost:3000",
+                  "ENABLE_RATE_LIMITING": "true",
+                  "MAX_REQUEST_SIZE": "50mb",
+                  "MAX_URLS_PER_TREND": "10",
+                  "MIN_URL_SCORE": "5.0",
+                  "CONTENT_TYPES": "review,comparison,tutorial,guide",
+                  "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+                  "NODE_OPTIONS": "--enable-source-maps"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "TrendsLogGroup"
+            ]
+          },
+          "AutomationLambdaVersionJkWOApxSjWGTEDsEGVYtL5J82PTxQvMBsqafeezmcjw": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AutomationLambdaFunction"
+              },
+              "CodeSha256": "1pWojPudjZ32Au+v0e0BAJXbswgaUr1Eg5nllDXQ434="
+            }
+          },
+          "ApiLambdaVersionwd6Gu9K5bypqrF5K0LujNGkTdF4ChCGnxxFByQFtf4": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ApiLambdaFunction"
+              },
+              "CodeSha256": "1pWojPudjZ32Au+v0e0BAJXbswgaUr1Eg5nllDXQ434="
+            }
+          },
+          "TrendsLambdaVersionRg72Li5jgmWxEJFX4hiEoC6hWvKMxlp9sozsMW59Q": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "TrendsLambdaFunction"
+              },
+              "CodeSha256": "1pWojPudjZ32Au+v0e0BAJXbswgaUr1Eg5nllDXQ434="
+            }
+          },
+          "ScraperLambdaVersion0q6vaHYgu4W06W7rYYF3klEb3K4woDoNVrYvLl92Lk": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ScraperLambdaFunction"
+              },
+              "CodeSha256": "rfS//5mhQB8DN97Tu4LGSdwF50aGjsjTjVyodImZVNA="
+            }
+          },
+          "AutomationEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(1 hour)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Input": "{\"action\":\"process\"}",
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "AutomationLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "automationSchedule"
+                }
+              ]
+            }
+          },
+          "AutomationLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AutomationLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "AutomationEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "TrendsEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(6 hours)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Input": "{\"geo\":\"US\",\"category\":\"all\"}",
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "TrendsLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "trendsSchedule"
+                }
+              ]
+            }
+          },
+          "TrendsLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "TrendsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "TrendsEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "obsidian-web-clipper-dev",
+              "BinaryMediaTypes": [
+                "application/octet-stream"
+              ],
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": "",
+              "MinimumCompressionSize": 1024
+            }
+          },
+          "ApiGatewayResourceProxyVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "{proxy+}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceScrape": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "scrape",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAutomation": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "automation",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceTrends": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "trends",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Requested-With'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodProxyVarOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Requested-With'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceProxyVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodScrapeOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Requested-With'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceScrape"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAutomationOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Requested-With'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAutomation"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodTrendsOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Requested-With'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\".+\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceTrends"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodProxyVarAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceProxyVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodScrapePost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceScrape"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ScraperLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": [],
+              "RequestValidatorId": {
+                "Ref": "ApiGatewayObsidianwebclipperRequestValidator"
+              },
+              "RequestModels": {
+                "application/json": {
+                  "Ref": "ApiGatewayMethodScrapePostApplicationJsonModel"
+                }
+              }
+            },
+            "DependsOn": [
+              "ScraperLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodAutomationPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAutomation"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AutomationLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": [],
+              "RequestValidatorId": {
+                "Ref": "ApiGatewayObsidianwebclipperRequestValidator"
+              },
+              "RequestModels": {
+                "application/json": {
+                  "Ref": "ApiGatewayMethodAutomationPostApplicationJsonModel"
+                }
+              }
+            },
+            "DependsOn": [
+              "AutomationLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodTrendsPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceTrends"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "TrendsLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": [],
+              "RequestValidatorId": {
+                "Ref": "ApiGatewayObsidianwebclipperRequestValidator"
+              },
+              "RequestModels": {
+                "application/json": {
+                  "Ref": "ApiGatewayMethodTrendsPostApplicationJsonModel"
+                }
+              }
+            },
+            "DependsOn": [
+              "TrendsLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayObsidianwebclipperRequestValidator": {
+            "Type": "AWS::ApiGateway::RequestValidator",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ValidateRequestBody": true,
+              "ValidateRequestParameters": true,
+              "Name": "obsidian-web-clipper-dev | Validate request body and querystring parameters"
+            }
+          },
+          "ApiGatewayMethodScrapePostApplicationJsonModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ContentType": "application/json",
+              "Schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "template": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            }
+          },
+          "ApiGatewayMethodAutomationPostApplicationJsonModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ContentType": "application/json",
+              "Schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "schedule",
+                      "process",
+                      "initialize"
+                    ]
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "scheduledDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "options": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            }
+          },
+          "ApiGatewayMethodTrendsPostApplicationJsonModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ContentType": "application/json",
+              "Schema": {
+                "type": "object",
+                "properties": {
+                  "geo": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "business",
+                      "entertainment",
+                      "health",
+                      "science",
+                      "sports",
+                      "technology"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "ApiGatewayDeployment1737381003409": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodOptions",
+              "ApiGatewayMethodProxyVarOptions",
+              "ApiGatewayMethodScrapeOptions",
+              "ApiGatewayMethodAutomationOptions",
+              "ApiGatewayMethodTrendsOptions",
+              "ApiGatewayMethodAny",
+              "ApiGatewayMethodProxyVarAny",
+              "ApiGatewayMethodScrapePost",
+              "ApiGatewayMethodAutomationPost",
+              "ApiGatewayMethodTrendsPost"
+            ]
+          },
+          "ApiLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "ScraperLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ScraperLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "AutomationLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AutomationLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "TrendsLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "TrendsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "AutomationLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AutomationLambdaVersionJkWOApxSjWGTEDsEGVYtL5J82PTxQvMBsqafeezmcjw"
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-AutomationLambdaFunctionQualifiedArn"
+            }
+          },
+          "ApiLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ApiLambdaVersionwd6Gu9K5bypqrF5K0LujNGkTdF4ChCGnxxFByQFtf4"
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-ApiLambdaFunctionQualifiedArn"
+            }
+          },
+          "TrendsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "TrendsLambdaVersionRg72Li5jgmWxEJFX4hiEoC6hWvKMxlp9sozsMW59Q"
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-TrendsLambdaFunctionQualifiedArn"
+            }
+          },
+          "ScraperLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ScraperLambdaVersion0q6vaHYgu4W06W7rYYF3klEb3K4woDoNVrYvLl92Lk"
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-ScraperLambdaFunctionQualifiedArn"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-obsidian-web-clipper-dev-ServiceEndpoint"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              },
+              "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": true,
+                "BlockPublicPolicy": true,
+                "IgnorePublicAcls": true,
+                "RestrictPublicBuckets": true
+              },
+              "VersioningConfiguration": {
+                "Status": "Enabled"
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "custom": {
+      "prune": {
+        "automatic": true,
+        "number": 3
+      },
+      "dotenv": {
+        "path": ".env",
+        "include": [
+          "SUPABASE_URL",
+          "SUPABASE_ANON_KEY",
+          "PORT",
+          "SCRAPER_TIMEOUT",
+          "SCRAPER_USER_AGENT",
+          "SCRAPER_MAX_RETRIES",
+          "SCRAPER_SCROLL_TIMEOUT",
+          "SCRAPER_VIEWPORT_WIDTH",
+          "SCRAPER_VIEWPORT_HEIGHT",
+          "MAX_CONTENT_LENGTH",
+          "DEFAULT_CONTENT_TYPE",
+          "API_RATE_LIMIT",
+          "API_TIMEOUT",
+          "API_MAX_BODY_SIZE",
+          "ALLOWED_ORIGINS",
+          "ENABLE_RATE_LIMITING",
+          "MAX_REQUEST_SIZE",
+          "MAX_URLS_PER_TREND",
+          "MIN_URL_SCORE",
+          "CONTENT_TYPES"
+        ]
+      }
+    },
+    "plugins": [
+      "serverless-offline",
+      "serverless-dotenv-plugin",
+      "serverless-prune-plugin"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "api": {
+        "handler": "src/lambda/api-handler.handler",
+        "package": {
+          "patterns": [
+            "src/lambda/api-handler.js",
+            "src/services/**",
+            "node_modules/@supabase/**",
+            "node_modules/node-fetch/**"
+          ],
+          "artifact": "C:\\Users\\rober\\obsidian\\project\\.serverless\\api.zip"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "",
+              "method": "any",
+              "cors": {
+                "methods": [
+                  "OPTIONS",
+                  "ANY"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "allowCredentials": false,
+                "origins": [
+                  "*"
+                ]
+              },
+              "integration": "AWS_PROXY"
+            }
+          },
+          {
+            "http": {
+              "path": "{proxy+}",
+              "method": "any",
+              "cors": {
+                "methods": [
+                  "OPTIONS",
+                  "ANY"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "allowCredentials": false,
+                "origins": [
+                  "*"
+                ]
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--enable-source-maps"
+        },
+        "name": "obsidian-web-clipper-dev-api",
+        "memory": 2048,
+        "timeout": 30,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "ApiLambdaVersionwd6Gu9K5bypqrF5K0LujNGkTdF4ChCGnxxFByQFtf4"
+      },
+      "scraper": {
+        "handler": "src/lambda/scraper-handler.handler",
+        "package": {
+          "patterns": [
+            "src/lambda/scraper-handler.js",
+            "src/services/**",
+            "node_modules/cheerio/**",
+            "node_modules/@mozilla/**",
+            "node_modules/turndown/**",
+            "node_modules/sanitize-html/**",
+            "node_modules/jsdom/**",
+            "node_modules/natural/**",
+            "node_modules/node-fetch/**",
+            "node_modules/slugify/**",
+            "node_modules/@supabase/**"
+          ],
+          "artifact": "C:\\Users\\rober\\obsidian\\project\\.serverless\\scraper.zip"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "scrape",
+              "method": "post",
+              "cors": {
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "allowCredentials": false,
+                "origins": [
+                  "*"
+                ]
+              },
+              "request": {
+                "schemas": {
+                  "application/json": {
+                    "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiGatewayMethodScrapePostApplicationJsonModel\"][\"Properties\"][\"Schema\"]"
+                  }
+                }
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--enable-source-maps"
+        },
+        "timeout": 30,
+        "memorySize": 2048,
+        "name": "obsidian-web-clipper-dev-scraper",
+        "memory": 2048,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "ScraperLambdaVersion0q6vaHYgu4W06W7rYYF3klEb3K4woDoNVrYvLl92Lk"
+      },
+      "automation": {
+        "handler": "src/lambda/automation-handler.handler",
+        "package": {
+          "patterns": [
+            "src/lambda/automation-handler.js",
+            "src/services/**",
+            "node_modules/@supabase/**",
+            "node_modules/node-fetch/**"
+          ],
+          "artifact": "C:\\Users\\rober\\obsidian\\project\\.serverless\\automation.zip"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "automation",
+              "method": "post",
+              "cors": {
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "allowCredentials": false,
+                "origins": [
+                  "*"
+                ]
+              },
+              "request": {
+                "schemas": {
+                  "application/json": {
+                    "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiGatewayMethodAutomationPostApplicationJsonModel\"][\"Properties\"][\"Schema\"]"
+                  }
+                }
+              },
+              "integration": "AWS_PROXY"
+            }
+          },
+          {
+            "schedule": {
+              "rate": [
+                "rate(1 hour)"
+              ],
+              "input": {
+                "action": "process"
+              }
+            }
+          }
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--enable-source-maps"
+        },
+        "timeout": 30,
+        "memorySize": 2048,
+        "name": "obsidian-web-clipper-dev-automation",
+        "memory": 2048,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "AutomationLambdaVersionJkWOApxSjWGTEDsEGVYtL5J82PTxQvMBsqafeezmcjw"
+      },
+      "trends": {
+        "handler": "src/lambda/trends-handler.handler",
+        "package": {
+          "patterns": [
+            "src/lambda/trends-handler.js",
+            "src/services/**",
+            "node_modules/@supabase/**",
+            "node_modules/node-fetch/**"
+          ],
+          "artifact": "C:\\Users\\rober\\obsidian\\project\\.serverless\\trends.zip"
+        },
+        "events": [
+          {
+            "http": {
+              "path": "trends",
+              "method": "post",
+              "cors": {
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "allowCredentials": false,
+                "origins": [
+                  "*"
+                ]
+              },
+              "request": {
+                "schemas": {
+                  "application/json": {
+                    "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiGatewayMethodTrendsPostApplicationJsonModel\"][\"Properties\"][\"Schema\"]"
+                  }
+                }
+              },
+              "integration": "AWS_PROXY"
+            }
+          },
+          {
+            "schedule": {
+              "rate": [
+                "rate(6 hours)"
+              ],
+              "input": {
+                "geo": "US",
+                "category": "all"
+              }
+            }
+          }
+        ],
+        "environment": {
+          "NODE_OPTIONS": "--enable-source-maps"
+        },
+        "timeout": 30,
+        "memorySize": 1024,
+        "name": "obsidian-web-clipper-dev-trends",
+        "memory": 1024,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "TrendsLambdaVersionRg72Li5jgmWxEJFX4hiEoC6hWvKMxlp9sozsMW59Q"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "ScraperLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/obsidian-web-clipper-scraper",
+            "RetentionInDays": 14
+          }
+        },
+        "TrendsLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/obsidian-web-clipper-trends",
+            "RetentionInDays": 14
+          }
+        },
+        "AutomationLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/obsidian-web-clipper-automation",
+            "RetentionInDays": 14
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "obsidian-web-clipper",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "package": {
+        "individually": true,
+        "patterns": [
+          "!**",
+          "package.json",
+          "package-lock.json",
+          "src/lambda/**",
+          "src/services/**",
+          "node_modules/**",
+          "!node_modules/.bin/**",
+          "!node_modules/**/test/**",
+          "!node_modules/**/tests/**",
+          "!node_modules/**/example/**",
+          "!node_modules/**/examples/**",
+          "!node_modules/**/doc/**",
+          "!node_modules/**/docs/**",
+          "!node_modules/**/*.d.ts",
+          "!node_modules/**/*.md",
+          "!node_modules/**/*.map"
+        ],
+        "artifactsS3KeyDirname": "serverless/obsidian-web-clipper/dev/code-artifacts",
+        "artifactDirectoryName": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/obsidian-web-clipper/dev/1737381126586-2025-01-20T13:52:06.586Z",
+    "artifact": ""
+  }
+}
